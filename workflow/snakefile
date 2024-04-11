@@ -37,7 +37,7 @@ rule all:
 
 c_conda = "$CDATA/apptainer_local/conda_byoe.sif" 
 c_qc = "$CDATA/apptainer_local/qc_suite_v0.3.sif" 
-c_cactus = "$CDATA/apptainer_local/apptainer_local/cactus_v2.8.1.sif"
+c_cactus = "$CDATA/apptainer_local/cactus_v2.8.1.sif"
 c_gatk = "$CDATA/apptainer_local/genotyping_suite_v0.3.sif" 
 
 rule all_subsets:
@@ -110,7 +110,7 @@ rule bwa_index:
     container: c_gatk
     shell:
       """
-      bwa index -a bwtsw {input.fa} &> {log}
+      bwa index -a bwtsw {input.fa}
       """
 
 rule map_to_old_ref:
