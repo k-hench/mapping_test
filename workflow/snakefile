@@ -22,7 +22,7 @@ c_gatk = "$CDATA/apptainer_local/genotyping_suite_v0.3.sif"
 rule all_subsets:
     input: expand( "data/subset/{id}_{dir}.fq.gz", id = SAMPLES, dir = [1, 2] )
 
-rule all_subsets:
+rule all_stats:
     input: 
       tsv = expand( "results/stats/{tp}/{id}_coverage.tsv.gz", id = SAMPLES, tp = [ "bam", "old_bam"]),
       txt = expand( "results/stats/{tp}/{id}_bamstats.txt", id = SAMPLES, tp = [ "bam", "old_bam"])
