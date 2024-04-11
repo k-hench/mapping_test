@@ -1,0 +1,3 @@
+data/*
+!data/file_info.tsv
+!data/sample_info.tsv
