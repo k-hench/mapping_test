@@ -1,5 +1,26 @@
 """
-snakemake -n all_subsets
+snakemake -n all_stats
+
+snakemake \
+  --jobs 50 \
+  --latency-wait 30 \
+  -p \
+  --default-resources mem_mb=15120 threads=1 \
+  --use-singularity \
+  --singularity-args "--bind $CDATA,$EDATA" \
+  --use-conda \
+  --rerun-triggers mtime \
+  --cluster '
+    sbatch \
+      --export ALL \
+      --ntasks 1 \
+      --cpus-per-task {threads} \
+      --error logs/{name}.{jobid}.err \
+      --output logs/{name}.{jobid}.out \
+      --mem {resources.mem_mb} \
+      --job-name {name}.{jobid}' \
+      --jn job_c.{name}.{jobid}.sh \
+      -R all_stats
 """
 import os
 from copy import deepcopy

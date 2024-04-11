@@ -11,8 +11,8 @@ idx	spec	nr	dir	link
 10	pue 	5	rv	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR275/004/ERR2751014/ERR2751014_2.fastq.gz
 11	nig	1	fw	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR275/008/ERR2750998/ERR2750998_1.fastq.gz
 12	nig 	1	rv	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR275/008/ERR2750998/ERR2750998_2.fastq.gz
-13	nig	2	fw	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR275/008/ERR2750998/ERR2750999_1.fastq.gz
-14	nig 	2	rv	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR275/008/ERR2750998/ERR2750999_2.fastq.gz
+13	nig	2	fw	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR275/009/ERR2750999/ERR2750999_1.fastq.gz
+14	nig 	2	rv	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR275/009/ERR2750999/ERR2750999_2.fastq.gz
 15	nig	3	fw	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR275/002/ERR2751012/ERR2751012_1.fastq.gz
 16	nig 	3	rv	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR275/002/ERR2751012/ERR2751012_2.fastq.gz
 17	nig	4	fw	ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR275/005/ERR2751015/ERR2751015_1.fastq.gz
