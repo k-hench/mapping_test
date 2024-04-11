@@ -1,0 +1,152 @@
+"""
+snakemake -n all_subsets
+"""
+import os
+from copy import deepcopy
+import numpy as np
+import pandas as pd
+
+# read in the sequencing meta-data
+sample_data = pd.read_table('data/sample_info.tsv')
+
+SAMPLES = list(set(sample_data['ena'].values ))
+
+rule all:
+    message: "hi there"
+
+c_conda = "$CDATA/apptainer_local/conda_byoe.sif" 
+c_qc = "$CDATA/apptainer_local/qc_suite_v0.3.sif" 
+c_cactus = "$CDATA/apptainer_local/apptainer_local/cactus_v2.8.1.sif"
+c_gatk = "$CDATA/apptainer_local/genotyping_suite_v0.3.sif" 
+
+rule all_subsets:
+    input: expand( "data/subset/{id}_{dir}.fq.gz", id = SAMPLES, dir = [1, 2] )
+
+rule all_subsets:
+    input: 
+      tsv = expand( "results/stats/{tp}/{id}_coverage.tsv.gz", id = SAMPLES, tp = [ "bam", "old_bam"]),
+      txt = expand( "results/stats/{tp}/{id}_bamstats.txt", id = SAMPLES, tp = [ "bam", "old_bam"])
+
+# --------------------#
+
+rule subsample_fastq:
+    input:
+      fq_fw = "data/raw/{id}_1.fastq.gz",
+      fq_rv = "data/raw/{id}_2.fastq.gz"
+    output:
+      fq_fw = "data/subset/{id}_1.fq.gz",
+      fq_rv = "data/subset/{id}_2.fq.gz"
+    params:
+      n_seqs = 100000
+    container: c_qc
+    shell:
+      """
+      seqtk sample -s 42 {input.fq_fw} {params.n_seqs} | bgzip > {output.fq_fw}
+      seqtk sample -s 42 {input.fq_rv} {params.n_seqs} | bgzip > {output.fq_rv}
+      """
+
+rule map_to_pangenome:
+    input:
+      fq_fw = "data/subset/{id}_1.fq.gz",
+      fq_rv = "data/subset/{id}_2.fq.gz",
+      gbz = "data/genome/hypoplectrus_minigraph.d2.gbz",
+      min = "data/genome/hypoplectrus_minigraph.d2.min",
+      dist = "data/genome/hypoplectrus_minigraph.d2.dist"
+    output:
+      gam = "results/mapped/gam/{id}.gam"
+    container: c_cactus
+    shell:
+      """
+      vg giraffe \
+        -Z {input.gbz} \
+         -m {input.min} \
+         -d {input.dist} \
+         -f {input.fq_fw} \
+         -f {input.fq_rv} > {output.gam}
+      """
+
+rule convert_to_bam:
+    input:
+      gam = "results/mapped/gam/{id}.gam",
+    output:
+      bam = "results/mapped/bam/{id}.bam"
+    params:
+      ref = ""
+    container: c_cactus
+    shell:
+      """
+      vg surject \
+        -x {params.ref} \
+        -b \
+        {input.gam} > {output.bam}
+      """
+
+rule bwa_index:
+    input:
+      fa = "data/genome/hypoplectrus_refgenome-masked.fa.gz",
+      fai = "data/genome/hypoplectrus_refgenome-masked.fa.gz.fai"
+    output: "data/genome/hypoplectrus_refgenome-masked.fa.gz.bwt"
+    container: c_gatk
+    shell:
+      """
+      bwa index -a bwtsw {input.fa} &> {log}
+      """
+
+rule map_to_old_ref:
+    input:
+      fq_fw = "data/subset/{id}_1.fq.gz",
+      fq_rv = "data/subset/{id}_2.fq.gz",
+      idx = "data/genome/hypoplectrus_refgenome-masked.fa.gz.bwt"
+    output:
+      sam = temp( "results/mapped/old_sam/{id}.sam" )
+    params:
+      bt_idx = "data/genome/hypoplectrus_refgenome-masked"
+    container: c_qc
+    shell:
+      """
+      bowtie2 \
+        -x {params.bt_idx} \
+        -1 {input.fq_fw} \
+        -2 {input.fq_rv} -S {output.sam}
+      """
+
+rule index_bam:
+    input:
+      sam = "results/mapped/old_sam/{id}.sam"
+    output:
+      bam = "results/mapped/old_bam/{id}.bam",
+      bai = "results/mapped/old_bam/{id}.bai"
+    container: c_gatk
+    shell:
+      """
+      gatk SortSam -I {input.sam} -O {output.bam} --SORT_ORDER coordinate
+      gatk BuildBamIndex -I {output.bam} -O {output.bai}  
+      """
+
+rule bamcov:
+    input:
+      bam = "results/mapped/{tp}/{id}.bam"
+    output:
+      cov = "results/stats/{tp}/{id}_coverage.tsv.gz"
+    params:
+      unzipped = "results/stats/{tp}/{id}_coverage.tsv"
+    resources:
+      mem_mb=51200
+    container: c_qc
+    shell:
+      """
+      bamcov {input.bam} -o {params.unzipped}
+      gzip {params.unzipped}
+      """
+
+rule bamtools:
+    input:
+      bam = "results/mapped/{tp}/{id}.bam"
+    output:
+      stats = "results/stats/{tp}/{id}_bamstats.txt"
+    container: c_qc
+    shell:
+      """
+      bamtools stats -in {input.bam} | \
+        grep -v "*" > {output.stats}
+      """
