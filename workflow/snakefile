@@ -92,7 +92,7 @@ rule convert_to_bam:
     output:
       bam = "results/mapped/bam/{id}.bam"
     params:
-      ref = ""
+      ref = "hypoplectrus_refgenome"
     container: c_cactus
     shell:
       """
