@@ -146,7 +146,8 @@ rule map_to_old_ref:
       bwa mem \
         {params.bwa_idx} \
         {input.fq_fw} \
-        {input.fq_rv} |  \
+        {input.fq_rv} | \
+        samtools sort | \
         samtools view -bS - > {output.bam}
       """
 
