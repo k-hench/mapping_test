@@ -146,7 +146,7 @@ rule map_to_old_ref:
     container: c_gatk
     shell:
       """
-      bwa mem \
+      bwa mem -M \
         {params.bwa_idx} \
         {input.fq_fw} \
         {input.fq_rv} | \
