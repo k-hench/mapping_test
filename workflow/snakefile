@@ -96,7 +96,7 @@ rule create_referene_paths:
       ref = "hypoplectrus_refgenome"
     container: c_cactus
     shell:
-      """"
+      """
       vg paths --list -x {input.gbz} > {output.all_paths}
       grep {params.ref} {output.all_paths} > {output.ref_paths}
       """
