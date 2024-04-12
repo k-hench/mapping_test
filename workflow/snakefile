@@ -117,6 +117,7 @@ rule convert_to_bam:
         -F {input.ref_paths} \
         -t {threads} \
         -b \
+        -i \
         {input.gam} | \
         samtools sort | \
         samtools view -bS - > {output.bam}
