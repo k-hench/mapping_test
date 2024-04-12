@@ -58,7 +58,7 @@ rule subsample_fastq:
       fq_fw = "data/subset/{id}_1.fq.gz",
       fq_rv = "data/subset/{id}_2.fq.gz"
     params:
-      n_seqs = 100000
+      n_seqs = 5000000
     container: c_qc
     shell:
       """
