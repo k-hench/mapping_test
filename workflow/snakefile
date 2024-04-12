@@ -121,7 +121,7 @@ rule map_to_old_ref:
     output:
       sam = temp( "results/mapped/old_sam/{id}.sam" )
     params:
-      bt_idx = "data/genome/hypoplectrus_refgenome-masked"
+      bt_idx = "data/genome/hypoplectrus_refgenome-masked.fa.gz"
     container: c_qc
     shell:
       """
