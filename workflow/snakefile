@@ -86,18 +86,36 @@ rule map_to_pangenome:
          -f {input.fq_rv} > {output.gam}
       """
 
-rule convert_to_bam:
+rule create_referene_paths:
     input:
-      gam = "results/mapped/gam/{id}.gam",
+      gbz = "data/genome/hypoplectrus_minigraph.d2.gbz"
     output:
-      bam = "results/mapped/bam/{id}.bam"
+      all_paths = "data/genome/hypoplectrus_minigraph.d2.reference_paths.txt",
+      ref_paths = "data/genome/hypoplectrus_minigraph.d2.refgenome_paths.txt"
     params:
       ref = "hypoplectrus_refgenome"
     container: c_cactus
     shell:
+      """"
+      vg paths --list -x {input.gbz} > {output.all_paths}
+      grep {params.ref} {output.all_paths} > {output.ref_paths}
+      """
+
+rule convert_to_bam:
+    input:
+      gam = "results/mapped/gam/{id}.gam",
+      gbz = "data/genome/hypoplectrus_minigraph.d2.gbz",
+      ref_paths = "data/genome/hypoplectrus_minigraph.d2.refgenome_paths.txt"
+    output:
+      bam = "results/mapped/bam/{id}.bam"
+    container: c_cactus
+    threads: 4
+    shell:
       """
       vg surject \
-        -x {params.ref} \
+        -x {input.gbz} \
+        -F {input.ref_paths} \
+        -t {threads} \
         -b \
         {input.gam} > {output.bam}
       """
@@ -119,29 +137,17 @@ rule map_to_old_ref:
       fq_rv = "data/subset/{id}_2.fq.gz",
       idx = "data/genome/hypoplectrus_refgenome-masked.fa.gz.bwt"
     output:
-      sam = temp( "results/mapped/old_sam/{id}.sam" )
+      bam = "results/mapped/old_bam/{id}.bam"
     params:
-      bt_idx = "data/genome/hypoplectrus_refgenome-masked.fa.gz"
-    container: c_qc
-    shell:
-      """
-      bowtie2 \
-        -x {params.bt_idx} \
-        -1 {input.fq_fw} \
-        -2 {input.fq_rv} -S {output.sam}
-      """
-
-rule index_bam:
-    input:
-      sam = "results/mapped/old_sam/{id}.sam"
-    output:
-      bam = "results/mapped/old_bam/{id}.bam",
-      bai = "results/mapped/old_bam/{id}.bai"
+      bwa_idx = "data/genome/hypoplectrus_refgenome-masked.fa.gz"
     container: c_gatk
     shell:
       """
-      gatk SortSam -I {input.sam} -O {output.bam} --SORT_ORDER coordinate
-      gatk BuildBamIndex -I {output.bam} -O {output.bai}  
+      bwa mem \
+        {params.bwa_idx} \
+        {input.fq_fw} \
+        {input.fq_rv} |  \
+        samtools view -bS - > {output.bam}
       """
 
 rule bamcov:
