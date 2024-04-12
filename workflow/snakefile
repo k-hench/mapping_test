@@ -117,7 +117,9 @@ rule convert_to_bam:
         -F {input.ref_paths} \
         -t {threads} \
         -b \
-        {input.gam} > {output.bam}
+        {input.gam} | \
+        samtools sort | \
+        samtools view -bS - > {output.bam}
       """
 
 rule bwa_index:
